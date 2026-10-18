@@ -35,20 +35,35 @@ foreach ($books as $index => $book) {
   return $books;
 }
 
-function getBook()
+function getBook($id)
 {
+  global $pdo;
 
-  $book = [
-    "id" => 5,
-    "title" => "Antologi Rasa Nusantara",
-    "isbn" => "978-602-1234-56-7",
-    "year" => 2021,
-    "stock" => 4,
-    "category_id" => 1,
-    "category" => "Fiksi",
-    "description" => "Kumpulan puisi dan cerita pendek dari berbagai penulis Nusantara.",
-    "author_ids" => [4, 5],
-    "authors" => ["Pramoedya Ananta Toer", "Sapardi Djoko Damono"],
-  ];
+  $query ="select id,title,isbn,year,stock,category_id,description from books where id = :id";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute(['id' => $id]);
+
+
+
+  $book = $stmt->fetch();
+
+if (!$book){
+  header("location: ../books/index.php");
+  exit;
+}
+
+$query ="select a.id from book_author ba 
+        left join authors a on ba.author_id =a.id 
+        where ba.book_id = :book_id
+          ";
+$stmt = $pdo ->prepare($query);
+$stmt->execute ([
+  'book_id'=>$book['id']
+]);
+
+$authorIds =$stmt->fetchall();
+
+$book['author_ids'] = array_column($authorIds,'id') ;
+
   return $book;
 } 
