@@ -1,12 +1,12 @@
 <?php
-
+require_once __DIR__ . "/../config/database.php";
 function getUsers()
 {
   $users = [
-    ["id" => 1, "name" => "Admin Utama",    "email" => "admin@ski.sch.id",               "role" => "admin"],
-    ["id" => 2, "name" => "Budi Santoso",   "email" => "budi.santoso@siswa.ski.sch.id",  "role" => "member"],
-    ["id" => 3, "name" => "Siti Aminah",    "email" => "siti.aminah@siswa.ski.sch.id",   "role" => "member"],
-    ["id" => 4, "name" => "Richard Marcell","email" => "richard.m@ski.sch.id",           "role" => "admin"],
+    ["id" => 1, "name" => "Admin Utama", "email" => "admin@ski.sch.id", "role" => "admin"],
+    ["id" => 2, "name" => "Budi Santoso", "email" => "budi.santoso@siswa.ski.sch.id", "role" => "member"],
+    ["id" => 3, "name" => "Siti Aminah", "email" => "siti.aminah@siswa.ski.sch.id", "role" => "member"],
+    ["id" => 4, "name" => "Richard Marcell", "email" => "richard.m@ski.sch.id", "role" => "admin"],
   ];
 
   return $users;
@@ -15,10 +15,10 @@ function getUsers()
 function getUser()
 {
   $user = [
-    "id"    => 2,
-    "name"  => "Budi Santoso",
+    "id" => 2,
+    "name" => "Budi Santoso",
     "email" => "budi.santoso@siswa.ski.sch.id",
-    "role"  => "member",
+    "role" => "member",
   ];
 
   return $user;
@@ -28,10 +28,42 @@ function getProfile()
 {
   $profile = [
     "user_id" => 2,
-    "phone"   => "0812-3456-7890",
+    "phone" => "0812-3456-7890",
     "address" => "Jl. Merdeka No. 21, Pontianak, Kalimantan Barat",
-    "bio"     => "Murid kelas XI TKJ yang gemar membaca novel fiksi dan buku pengembangan diri.",
+    "bio" => "Murid kelas XI TKJ yang gemar membaca novel fiksi dan buku pengembangan diri.",
   ];
 
   return $profile;
+}
+
+function isEmailTaken($email)
+{
+  global $pdo;
+
+  $query = "select count(id) from users where email = :email";
+
+  $stmt = $pdo->prepare($query);
+  $stmt->execute([
+    'email' => $email
+  ]);
+
+  $isEmailTaken = $stmt->fetchColumn() > 0;
+
+  return $isEmailTaken;
+}
+
+function getUserByEmail($email)
+{
+  global $pdo;
+
+  $query = "select * from users where email = :email";
+
+  $stmt = $pdo->prepare($query);
+  $stmt->execute([
+    'email' => $email
+  ]);
+
+  $user = $stmt->fetch();
+
+  return $user;
 }
