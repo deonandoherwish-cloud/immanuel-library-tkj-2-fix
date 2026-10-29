@@ -1,12 +1,23 @@
 <?php
-
-require_once __DIR__ . "/../../repositories/book-repository.php";
 require_once __DIR__ . "/../../middleware/auth.php";
-requireRole(['admin', 'member']);
-require_once __DIR__ . "/../../config/database.php";
- 
+requireAuth();
+require_once __DIR__ . "/../../repositories/book-repository.php";
+require_once __DIR__ . "/../../repositories/category-repository.php";
 
-$books = getBooks();
+$perPage = 5;
+$currentPage = max(1, $_GET['page'] ?? 1);
+
+$search = trim($_GET['search'] ?? "");
+$categoryId = $_GET['category'] ?? "";
+if (!ctype_digit((string) $categoryId)) {
+  $categoryId = "";
+}
+
+$page = max(1, (int) ($_GET['page'] ?? 1));
+
+$categories = getCategories();
+$books = getBooks($search, $categoryId, $page, $perPage);
+
 
 $pageTitle = "Manajemen Buku";
 $pageSubtitle = "Kelola data buku, kategori, dan penulis";
@@ -31,21 +42,23 @@ $pageSubtitle = "Kelola data buku, kategori, dan penulis";
 
       <div class="app-content">
         <div class="toolbar">
-          <form method="" action="" class="toolbar-filters">
+          <form method="get" class="toolbar-filters">
             <div class="search-box">
               <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="7" />
                 <path d="m21 21-4.3-4.3" />
               </svg>
-              <input type="text" name="search" class="search-input" placeholder="Cari judul buku...">
+              <input type="text" name="search" class="search-input" placeholder="Cari judul buku..."
+                value="<?= htmlspecialchars($search) ?>">
             </div>
             <select name="category" class="filter-select">
               <option value="">Semua Kategori</option>
-              <option value="Fiksi">Fiksi</option>
-              <option value="Sains">Sains</option>
-              <option value="Sejarah">Sejarah</option>
-              <option value="Teknologi">Teknologi</option>
+              <?php foreach ($categories as $category): ?>
+                <option value="<?= $category['id'] ?>" <?= $category['id'] == $categoryId ? "selected" : "" ?>>
+                  <?= $category['name'] ?>
+                </option>
+              <?php endforeach ?>
             </select>
             <button type="submit" class="btn btn-outline btn-sm">Cari</button>
           </form>
@@ -101,8 +114,19 @@ $pageSubtitle = "Kelola data buku, kategori, dan penulis";
         </div>
 
         <div class="pagination">
-          <span class="pagination-btn is-disabled">&lt;</span>
-          <span class="pagination-btn is-disabled">&gt;</span>
+          <?php if ($page > 1): ?>
+            <a href="?<?= http_build_query(['search' => $search, 'category' => $categoryId, 'page' => $page - 1]) ?>"
+              class="pagination-btn">&lt;</a>
+          <?php else: ?>
+            <span class="pagination-btn is-disabled">&lt;</span>
+          <?php endif ?>
+
+          <?php if ($page): ?>
+            <a href="?<?= http_build_query(['search' => $search, 'category' => $categoryId, 'page' => $page + 1]) ?>"
+              class="pagination-btn">&gt;</a>
+          <?php else: ?>
+            <span class="pagination-btn is-disabled">&gt;</span>
+          <?php endif ?>
         </div>
       </div>
     </main>
